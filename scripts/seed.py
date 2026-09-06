@@ -30,8 +30,15 @@ db.add(
         role="editor",
     )
 )
+db.add(
+    m.User(
+        email="viewer@peblo.tv",
+        password_hash=hash_password("viewer123"),
+        role="viewer",
+    )
+)
 db.commit()
-print("Users created: admin@peblo.tv/admin123, editor@peblo.tv/editor123")
+print("Users created: admin@peblo.tv/admin123, editor@peblo.tv/editor123, viewer@peblo.tv/viewer123")
 
 seed_file = os.path.join(os.path.dirname(__file__), "..", "data", "seed", "seed_shows.json")
 SHOW_COLORS = {

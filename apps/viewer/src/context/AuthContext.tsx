@@ -40,21 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    // If it's a demo viewer without an API account, allow client-side demo viewer access
-    if (email.toLowerCase() === "viewer@peblo.tv") {
-      const demoUser: User = {
-        email: "viewer@peblo.tv",
-        role: "viewer",
-        name: "Demo Viewer",
-      };
-      const demoToken = "demo_viewer_token_" + Date.now();
-      setUser(demoUser);
-      setToken(demoToken);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: demoUser, token: demoToken }));
-      return;
-    }
-
-    // Call backend /api/auth/login
+    // Call backend /api/auth/login to authenticate credentials
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

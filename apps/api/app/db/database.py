@@ -22,6 +22,24 @@ def init_db():
         except Exception:
             pass
 
+    # Ensure default users exist (admin, editor, viewer)
+    try:
+        from app.db.models.models import User
+        from app.core.security import hash_password
+        db = SessionLocal()
+        default_users = [
+            ("admin@peblo.tv", "admin123", "admin"),
+            ("editor@peblo.tv", "editor123", "editor"),
+            ("viewer@peblo.tv", "viewer123", "viewer"),
+        ]
+        for email, password, role in default_users:
+            if not db.query(User).filter(User.email == email).first():
+                db.add(User(email=email, password_hash=hash_password(password), role=role))
+        db.commit()
+        db.close()
+    except Exception:
+        pass
+
 
 def get_db():
     db = SessionLocal()
