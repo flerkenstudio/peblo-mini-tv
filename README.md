@@ -1,5 +1,7 @@
 # 📺 Peblo Mini TV
 
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Flerken-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/flerken)
+
 A full-stack mini streaming platform designed around an **immutable catalogue publishing architecture**. 
 
 The system features a **FastAPI + PostgreSQL** backend, an admin/editor **React CMS**, and a cinematic **React Viewer** that reads solely from a pre-published, cryptographically verified catalogue file—completely decoupled from live database traffic.
@@ -30,6 +32,7 @@ The system features a **FastAPI + PostgreSQL** backend, an admin/editor **React 
     - [Health Monitoring & Alerting Strategy](#health-monitoring--alerting-strategy)
     - [CI/CD Automation Pipeline](#cicd-automation-pipeline)
 12. [Time Tracking Breakdown](#-time-tracking-breakdown)
+13. [Support & Sponsorship](#-support--sponsorship)
 
 ---
 
@@ -471,4 +474,15 @@ The GitHub Actions workflow [`.github/workflows/ci.yml`](file:///d:/TESting/pebl
 | **Test Suite** | Pytest unit and integration tests covering auth, validation codes, and publish atomicity | ~1.5 hours |
 | **DevOps, Docker & Documentation** | Docker Compose orchestration, CI/CD pipeline, README and architecture design | ~1.5 hours |
 | **Total** | | **~14.5 hours** |
+
+---
+
+## ☕ Support & Sponsorship
+
+If you found this project helpful, insightful, or interesting, consider supporting its development:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Flerken-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/flerken)
+
+Support via [buymeacoffee.com/flerken](https://www.buymeacoffee.com/flerken).
+
 
