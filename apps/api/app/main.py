@@ -5,7 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
+from app.db.database import init_db
 from app.api import auth, shows, seasons, episodes, artwork, catalog, validation, health
+
+init_db()
 
 app = FastAPI(title="Peblo Mini TV API")
 
