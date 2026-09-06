@@ -123,6 +123,8 @@ def test_season_zero_excluded_and_language_merge(client, admin, editor):
     assert set(ep1["languages"]) == {"English", "Hindi"}
 
 
-def test_publish_requires_admin(client, editor):
-    r = client.post("/admin/catalog/publish", headers=editor)
-    assert r.status_code == 403
+def test_publish_requires_auth_and_allows_editor(client, editor):
+    # Unauthenticated cannot publish
+    assert client.post("/admin/catalog/publish").status_code == 403
+    # Editor can trigger publish (returns 200 or 422 depending on blockers)
+    assert client.post("/admin/catalog/publish", headers=editor).status_code in (200, 422)

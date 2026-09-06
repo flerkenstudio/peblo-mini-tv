@@ -5,17 +5,17 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models.models import PublishRun
-from app.core.dependencies import require_admin
+from app.core.dependencies import require_editor
 from app.services.publisher import publish
 from app.storage import get_storage
 
 router = APIRouter(tags=["catalog"])
 
-# ---------- ADMIN ----------
+# ---------- CMS PUBLISH (Admin & Editor) ----------
 
 
 @router.post("/admin/catalog/publish")
-def do_publish(db: Session = Depends(get_db), user=Depends(require_admin)):
+def do_publish(db: Session = Depends(get_db), user=Depends(require_editor)):
     result = publish(db, triggered_by=user.email)
     if not result["success"]:
         raise HTTPException(422, detail=result)
@@ -23,7 +23,7 @@ def do_publish(db: Session = Depends(get_db), user=Depends(require_admin)):
 
 
 @router.get("/admin/catalog/publish-runs")
-def publish_runs(db: Session = Depends(get_db), user=Depends(require_admin)):
+def publish_runs(db: Session = Depends(get_db), user=Depends(require_editor)):
     runs = (
         db.query(PublishRun).order_by(PublishRun.started_at.desc()).limit(20).all()
     )

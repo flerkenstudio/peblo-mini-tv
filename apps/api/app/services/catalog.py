@@ -66,9 +66,6 @@ def build_catalogue_dict(db: Session) -> dict:
                 }
             )
 
-        if not seasons_out:
-            continue  # a published show needs at least one publishable season
-
         sections[show.section or "General"].append(
             {
                 "id": show.id,

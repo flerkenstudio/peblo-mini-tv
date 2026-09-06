@@ -9,8 +9,8 @@ export default function Home() {
   const [state, setState] = useState<"loading" | "error" | "ready">("loading");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
-  const loadCatalogue = () => {
-    setState("loading");
+  const loadCatalogue = (silent = false) => {
+    if (!silent) setState("loading");
     fetch("/api/catalog")
       .then((r) => {
         if (!r.ok) throw new Error("Catalogue unavailable");
@@ -20,11 +20,16 @@ export default function Home() {
         setCatalog(c);
         setState("ready");
       })
-      .catch(() => setState("error"));
+      .catch(() => {
+        if (!silent) setState("error");
+      });
   };
 
   useEffect(() => {
     loadCatalogue();
+    const handleFocus = () => loadCatalogue(true);
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
   const allShows = useMemo(

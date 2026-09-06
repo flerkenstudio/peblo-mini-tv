@@ -13,6 +13,9 @@ export default function ShowEditor() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
 
+  const [publishing, setPublishing] = useState(false);
+  const [publishNotice, setPublishNotice] = useState("");
+
   const load = useCallback(async () => {
     const s = await api(`/admin/shows/${id}`);
     setShow(s);
@@ -22,6 +25,21 @@ export default function ShowEditor() {
   useEffect(() => {
     load().catch((e) => setError(extractError(e)));
   }, [load]);
+
+  async function publishToViewer() {
+    setPublishing(true);
+    setPublishNotice("");
+    setError("");
+    try {
+      const res = await api("/admin/catalog/publish", { method: "POST" });
+      setPublishNotice(`✅ Live on Viewer! (v${res.version} — ${res.shows} shows, ${res.episodes} eps)`);
+      setTimeout(() => setPublishNotice(""), 4000);
+    } catch (e: any) {
+      setError(extractError(e));
+    } finally {
+      setPublishing(false);
+    }
+  }
 
   async function save(patch: any) {
     setError("");
@@ -34,6 +52,11 @@ export default function ShowEditor() {
       setShow(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+
+      // If show is published, auto-sync catalogue to viewer
+      if (patch.status === "published" || (updated.status === "published" && !patch.status)) {
+        api("/admin/catalog/publish", { method: "POST" }).catch(() => {});
+      }
     } catch (e: any) {
       setError(extractError(e));
     }
@@ -49,12 +72,32 @@ export default function ShowEditor() {
 
   return (
     <div className="cms-shell">
-      <button className="cms-btn secondary" onClick={() => nav("/")}>← Back to Library</button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <button className="cms-btn secondary" onClick={() => nav("/")}>← Back to Library</button>
+        <button
+          className="cms-btn"
+          disabled={publishing}
+          onClick={publishToViewer}
+          style={{ background: "#27ae60", borderColor: "#27ae60" }}
+          title="Publish current changes so they immediately appear in Viewer"
+        >
+          {publishing ? "Publishing…" : "🚀 Publish to Viewer"}
+        </button>
+      </div>
+
       <div className="cms-header" style={{ marginTop: 16 }}>
         <h1 style={{ margin: 0 }}>
           {show.title} <small style={{ color: "#888" }}>#{show.id}</small>
         </h1>
+        {show.status === "published" ? (
+          <span style={{ color: "#27ae60", fontWeight: 600, fontSize: "0.95rem" }}>● Published</span>
+        ) : (
+          <span style={{ color: "#e67e22", fontWeight: 600, fontSize: "0.95rem" }}>○ Draft</span>
+        )}
       </div>
+
+      {publishNotice && <div className="cms-alert success" style={{ marginTop: 12 }}>{publishNotice}</div>}
+      {error && <div className="cms-alert error" style={{ marginTop: 12 }}>{error}</div>}
 
       <div className="cms-tabs">
         {(["details", "content", "artwork"] as const).map((t) => (

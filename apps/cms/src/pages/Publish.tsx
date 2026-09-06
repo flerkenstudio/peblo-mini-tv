@@ -65,7 +65,7 @@ export default function Publish() {
         >
           {publishing ? "Publishing…" : "Publish Catalogue"}
         </button>
-        {noPermission && <span className="cms-hint error-text">Admin role required to publish.</span>}
+        {noPermission && <span className="cms-hint error-text">Sign in required to publish.</span>}
         {blocked && <span className="cms-hint error-text">Fix all problems above to enable publishing.</span>}
       </div>
 

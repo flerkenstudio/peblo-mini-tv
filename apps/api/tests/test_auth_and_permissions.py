@@ -9,8 +9,9 @@ def test_login_success_and_me(client, admin):
     assert r.json()["role"] == "admin"
 
 
-def test_editor_cannot_publish(client, editor):
-    assert client.post("/admin/catalog/publish", headers=editor).status_code == 403
+def test_editor_can_publish(client, editor):
+    r = client.post("/admin/catalog/publish", headers=editor)
+    assert r.status_code in (200, 422)
 
 
 def test_anon_cannot_create_show(client):

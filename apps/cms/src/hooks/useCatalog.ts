@@ -19,5 +19,5 @@ export const CATEGORIES = [
 export const LANGUAGES = ["en", "hi"];
 
 export function canPublish(role: string | null) {
-  return role === "admin";
+  return role === "admin" || role === "editor";
 }
