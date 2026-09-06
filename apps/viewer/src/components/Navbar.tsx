@@ -65,7 +65,7 @@ export default function Navbar() {
     <header className={`top-nav ${scrolled ? "scrolled" : ""}`}>
       <div className="nav-inner">
         <Link to="/" className="brand" aria-label="Peblo home">
-          <span className="brand-text" style={{ color: "var(--purple-vibrant)", fontFamily: "var(--font-heading)", textTransform: "none", letterSpacing: "0", fontSize: "28px" }}>Peblo</span>
+          <span className="brand-text peblo-brand-logo">PEBLO</span>
         </Link>
 
         {!isLoginPage && (

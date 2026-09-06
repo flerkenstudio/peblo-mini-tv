@@ -22,22 +22,27 @@ export default function HeroBanner({ show }: { show: any }) {
       className="hero"
       style={{
         backgroundImage: bannerImg
-          ? `linear-gradient(to right, rgba(0,0,0,0.7) 40%, transparent 100%), url(${bannerImg})`
+          ? `linear-gradient(to right, rgba(255, 247, 231, 0.96) 0%, rgba(255, 247, 231, 0.85) 45%, rgba(255, 247, 231, 0.4) 75%, rgba(255, 247, 231, 0.1) 100%), url(${bannerImg})`
           : undefined,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
+      <div className="hero-vignette" />
       <div className="hero-copy">
+        <div className="hero-peblo-badge">
+          <span className="badge-pill">PEBLO ORIGINAL</span>
+          {show.section && <span className="section-pill">{show.section.toUpperCase()}</span>}
+        </div>
         <h1 className="hero-title">{show.title}</h1>
         {show.synopsis && <p className="hero-subtext">{show.synopsis}</p>}
         <div className="hero-actions">
-          <Button variant="primary" onClick={() => nav(`/show/${show.id}`)}>
-            <Icon name="play" size={20} /> Watch Now
-          </Button>
-          <Button onClick={() => nav(`/show/${show.id}`)}>
-            <Icon name="info" size={20} /> Learn More
-          </Button>
+          <button className="netflix-btn netflix-btn-play" onClick={() => nav(`/show/${show.id}`)}>
+            <Icon name="play" size={22} /> Play
+          </button>
+          <button className="netflix-btn netflix-btn-info" onClick={() => nav(`/show/${show.id}`)}>
+            <Icon name="info" size={22} /> More Info
+          </button>
         </div>
       </div>
     </section>
