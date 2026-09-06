@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models.models import Episode, Season
 from app.schemas.schemas import EpisodeIn, EpisodeUpdate, EpisodeOut
 from app.core.dependencies import require_editor
+from app.storage import get_storage
 
 router = APIRouter(tags=["episodes"])
+
+ALLOWED_VIDEO_EXTENSIONS = (".mp4", ".webm", ".mov", ".mkv", ".m4v")
 
 
 @router.get("/admin/seasons/{season_id}/episodes")
@@ -21,6 +24,7 @@ def list_episodes(
         .order_by(Episode.episode_number)
         .all()
     )
+    storage = get_storage()
     return [
         {
             "id": e.id,
@@ -31,6 +35,8 @@ def list_episodes(
             "language": e.language,
             "duration_seconds": e.duration_seconds,
             "status": e.status,
+            "video_key": e.video_key,
+            "video_url": storage.get_url(e.video_key) if e.video_key else None,
         }
         for e in eps
     ]
@@ -80,5 +86,66 @@ def delete_episode(
     ep = db.get(Episode, episode_id)
     if not ep:
         raise HTTPException(404, "Episode not found")
+    if ep.video_key:
+        get_storage().delete(ep.video_key)
     db.delete(ep)
     db.commit()
+
+
+@router.post("/admin/episodes/{episode_id}/video")
+def upload_episode_video(
+    episode_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user=Depends(require_editor),
+):
+    ep = db.get(Episode, episode_id)
+    if not ep:
+        raise HTTPException(404, "Episode not found")
+
+    filename = file.filename or "video.mp4"
+    ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    content_type = file.content_type or ""
+
+    if ext not in ALLOWED_VIDEO_EXTENSIONS and not content_type.startswith("video/"):
+        raise HTTPException(
+            422,
+            f"Invalid video format '{ext or content_type}'. Allowed formats: MP4, WebM, MOV, MKV.",
+        )
+
+    storage = get_storage()
+
+    # Remove previous video file if present
+    if ep.video_key:
+        storage.delete(ep.video_key)
+
+    safe_name = filename.replace("/", "_").replace("\\", "_")
+    key = f"videos/ep_{episode_id}_{safe_name}"
+
+    storage.upload_file(key, file.file)
+
+    ep.video_key = key
+    db.commit()
+    db.refresh(ep)
+
+    return {
+        "id": ep.id,
+        "video_key": ep.video_key,
+        "video_url": storage.get_url(ep.video_key),
+    }
+
+
+@router.delete("/admin/episodes/{episode_id}/video", status_code=204)
+def delete_episode_video(
+    episode_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(require_editor),
+):
+    ep = db.get(Episode, episode_id)
+    if not ep:
+        raise HTTPException(404, "Episode not found")
+
+    if ep.video_key:
+        get_storage().delete(ep.video_key)
+        ep.video_key = None
+        db.commit()

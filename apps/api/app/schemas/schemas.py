@@ -74,5 +74,6 @@ class EpisodeOut(BaseModel):
     language: str
     episode_number: int
     status: str
+    video_key: str | None = None
 
     model_config = ConfigDict(from_attributes=True)

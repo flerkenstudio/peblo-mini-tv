@@ -48,10 +48,13 @@ def build_catalogue_dict(db: Session) -> dict:
                         "description": ep.description,
                         "duration_seconds": ep.duration_seconds,
                         "languages": [],
+                        "video_url": storage.get_url(ep.video_key) if ep.video_key else None,
                     },
                 )
                 if ep.language not in g["languages"]:
                     g["languages"].append(ep.language)
+                if not g.get("video_url") and ep.video_key:
+                    g["video_url"] = storage.get_url(ep.video_key)
 
             for g in grouped.values():
                 g["languages"] = sorted(g["languages"])

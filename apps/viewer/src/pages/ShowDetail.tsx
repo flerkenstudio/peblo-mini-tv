@@ -113,9 +113,10 @@ export default function ShowDetail() {
     show.title.toLowerCase().includes("discover india");
 
   const videoSrc =
-    isMotiShow && activePlayback?.episode?.episode_number === 1
+    activePlayback?.episode?.video_url ||
+    (isMotiShow && activePlayback?.episode?.episode_number === 1
       ? "/videos/moti-s01e01.mp4"
-      : null;
+      : null);
 
   return (
     <div className="detail-page">

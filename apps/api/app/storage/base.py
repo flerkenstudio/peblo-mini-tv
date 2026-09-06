@@ -1,9 +1,13 @@
+import typing
 from abc import ABC, abstractmethod
 
 
 class StorageBackend(ABC):
     @abstractmethod
     def upload(self, key: str, data: bytes) -> None: ...
+
+    @abstractmethod
+    def upload_file(self, key: str, file_obj: typing.BinaryIO) -> None: ...
 
     @abstractmethod
     def delete(self, key: str) -> None: ...

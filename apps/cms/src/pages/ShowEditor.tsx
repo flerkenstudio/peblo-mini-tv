@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api, extractError } from "../services/api";
+import { api, extractError, getToken } from "../services/api";
 import ArtworkUploader from "../components/ArtworkUploader";
 import { SECTIONS, CATEGORIES, LANGUAGES } from "../hooks/useCatalog";
 
@@ -252,6 +252,10 @@ function EpisodeList({ seasonId, onChange }: { seasonId: number; onChange: () =>
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<any>({});
+  const [uploadingEpId, setUploadingEpId] = useState<number | null>(null);
+  const [previewEpId, setPreviewEpId] = useState<number | null>(null);
+  const fileInputs = useRef<Record<number, HTMLInputElement | null>>({});
+
   const [draft, setDraft] = useState({
     title: "",
     episode_number: 1,
@@ -268,6 +272,44 @@ function EpisodeList({ seasonId, onChange }: { seasonId: number; onChange: () =>
   useEffect(() => {
     load().catch((e) => setError(extractError(e)));
   }, [load]);
+
+  async function handleVideoUpload(epId: number, file: File) {
+    setUploadingEpId(epId);
+    setError("");
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const res = await fetch(`/api/admin/episodes/${epId}/video`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}` },
+        body: fd,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setError(extractError(err));
+      } else {
+        await load();
+        onChange();
+      }
+    } catch (err: any) {
+      setError(extractError(err));
+    } finally {
+      setUploadingEpId(null);
+    }
+  }
+
+  async function handleVideoDelete(epId: number) {
+    if (!confirm("Delete video for this episode?")) return;
+    setError("");
+    try {
+      await api(`/admin/episodes/${epId}/video`, { method: "DELETE" });
+      if (previewEpId === epId) setPreviewEpId(null);
+      await load();
+      onChange();
+    } catch (err: any) {
+      setError(extractError(err));
+    }
+  }
 
   async function addEpisode() {
     setError("");
@@ -338,37 +380,95 @@ function EpisodeList({ seasonId, onChange }: { seasonId: number; onChange: () =>
               </div>
             </div>
           ) : (
-            <div className="cms-episode-row">
-              <div>
-                <b>E{e.episode_number}</b> — {e.title}{" "}
-                <span className="cms-episode-meta">
-                  (group {e.content_group}, {e.language},
-                  {e.duration_seconds ? ` ${Math.floor(e.duration_seconds / 60)}m` : " ⚠️ no duration"})
-                </span>
-              </div>
-              <div className="cms-episode-actions">
-                <select className="cms-select" style={{ width: "auto", padding: "6px 10px" }} value={e.status} onChange={(ev) => patchEp(e.id, { status: ev.target.value })}>
-                  <option value="draft">draft</option>
-                  <option value="published">published</option>
-                </select>
-                {!e.duration_seconds && (
+            <>
+              <div className="cms-episode-row">
+                <div>
+                  <b>E{e.episode_number}</b> — {e.title}{" "}
+                  <span className="cms-episode-meta">
+                    (group {e.content_group}, {e.language},
+                    {e.duration_seconds ? ` ${Math.floor(e.duration_seconds / 60)}m` : " ⚠️ no duration"})
+                  </span>
+                  <span style={{ marginLeft: 8, fontSize: "0.85rem" }}>
+                    {uploadingEpId === e.id ? (
+                      <span style={{ color: "#e67e22" }}>⏳ Uploading video…</span>
+                    ) : e.video_url ? (
+                      <span style={{ color: "#27ae60", fontWeight: 600 }}>🎬 Video Ready</span>
+                    ) : (
+                      <span style={{ color: "#888" }}>📹 No Video</span>
+                    )}
+                  </span>
+                </div>
+                <div className="cms-episode-actions">
                   <input
-                    placeholder="dur (sec)"
-                    className="cms-input"
-                    style={{ width: 80, padding: "6px 10px" }}
-                    onKeyDown={(ev) =>
-                      ev.key === "Enter" &&
-                      patchEp(e.id, { duration_seconds: Number((ev.target as HTMLInputElement).value) })
-                    }
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime,video/x-matroska"
+                    hidden
+                    ref={(el) => (fileInputs.current[e.id] = el)}
+                    onChange={(ev) => ev.target.files?.[0] && handleVideoUpload(e.id, ev.target.files[0])}
                   />
-                )}
-                <button className="cms-btn secondary small" onClick={() => {
-                  setEditing(e.id);
-                  setEditForm({ title: e.title, description: e.description || "", duration_seconds: e.duration_seconds || "" });
-                }}>✏️</button>
-                <button className="cms-btn danger small" onClick={() => delEp(e.id)}>🗑</button>
+
+                  {e.video_url && (
+                    <button
+                      className="cms-btn secondary small"
+                      onClick={() => setPreviewEpId(previewEpId === e.id ? null : e.id)}
+                      title="Preview video"
+                    >
+                      {previewEpId === e.id ? "Hide Video" : "▶ Play"}
+                    </button>
+                  )}
+
+                  <button
+                    className="cms-btn secondary small"
+                    disabled={uploadingEpId === e.id}
+                    onClick={() => fileInputs.current[e.id]?.click()}
+                    title={e.video_url ? "Replace video file from computer" : "Upload video file from computer"}
+                  >
+                    {uploadingEpId === e.id ? "Uploading…" : e.video_url ? "Replace Video" : "📁 Add Video"}
+                  </button>
+
+                  {e.video_url && (
+                    <button
+                      className="cms-btn danger small"
+                      onClick={() => handleVideoDelete(e.id)}
+                      title="Remove video file"
+                    >
+                      ❌ Video
+                    </button>
+                  )}
+
+                  <select className="cms-select" style={{ width: "auto", padding: "6px 10px" }} value={e.status} onChange={(ev) => patchEp(e.id, { status: ev.target.value })}>
+                    <option value="draft">draft</option>
+                    <option value="published">published</option>
+                  </select>
+                  {!e.duration_seconds && (
+                    <input
+                      placeholder="dur (sec)"
+                      className="cms-input"
+                      style={{ width: 80, padding: "6px 10px" }}
+                      onKeyDown={(ev) =>
+                        ev.key === "Enter" &&
+                        patchEp(e.id, { duration_seconds: Number((ev.target as HTMLInputElement).value) })
+                      }
+                    />
+                  )}
+                  <button className="cms-btn secondary small" onClick={() => {
+                    setEditing(e.id);
+                    setEditForm({ title: e.title, description: e.description || "", duration_seconds: e.duration_seconds || "" });
+                  }}>✏️</button>
+                  <button className="cms-btn danger small" onClick={() => delEp(e.id)}>🗑</button>
+                </div>
               </div>
-            </div>
+
+              {previewEpId === e.id && e.video_url && (
+                <div style={{ marginTop: 12, padding: 8, background: "#1a1a1a", borderRadius: 8, border: "1px solid #333" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, color: "#eee", fontSize: "0.85rem" }}>
+                    <span>🎬 Video Preview: <b>{e.title}</b></span>
+                    <button className="cms-btn secondary small" style={{ padding: "2px 8px" }} onClick={() => setPreviewEpId(null)}>Close</button>
+                  </div>
+                  <video src={e.video_url} controls style={{ width: "100%", maxHeight: 260, borderRadius: 6, background: "#000" }} />
+                </div>
+              )}
+            </>
           )}
         </div>
       ))}

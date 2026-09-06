@@ -1,5 +1,7 @@
 import os
+import shutil
 import tempfile
+import typing
 
 from app.storage.base import StorageBackend
 from app.core.config import settings
@@ -18,6 +20,12 @@ class LocalStorage(StorageBackend):
         os.makedirs(os.path.dirname(p), exist_ok=True)
         with open(p, "wb") as f:
             f.write(data)
+
+    def upload_file(self, key: str, file_obj: typing.BinaryIO) -> None:
+        p = self._path(key)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, "wb") as f:
+            shutil.copyfileobj(file_obj, f)
 
     def delete(self, key: str) -> None:
         p = self._path(key)
