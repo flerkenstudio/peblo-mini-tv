@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+dist/
+*.db
+data/storage/*
+!data/storage/.gitkeep
+.env
+.pytest_cache/
+*.tsbuildinfo
+

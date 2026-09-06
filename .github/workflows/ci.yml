@@ -1,0 +1,98 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install ruff
+      - run: ruff check apps/api/
+
+  lint-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: lint cms
+        run: |
+          cd apps/cms
+          npm install
+          npx tsc --noEmit
+      - name: lint viewer
+        run: |
+          cd apps/viewer
+          npm install
+          npx tsc --noEmit
+
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: pytest tests -v
+
+  cms:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/cms
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run build
+
+  viewer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/viewer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run build
+
+  build-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API image
+        run: docker build -t peblo-api ./apps/api
+      - name: Build CMS image
+        run: docker build -t peblo-cms ./apps/cms
+      - name: Build Viewer image
+        run: docker build -t peblo-viewer ./apps/viewer
+
+  deploy:
+    needs: [lint, lint-frontend, api, cms, viewer, build-images]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Placeholder
+        run: |
+          echo "Deploying to production..."
+          # Production workflow details:
+          # 1. Login to GitHub Container Registry (GHCR)
+          # 2. Tag and push images (API, CMS, Viewer) to GHCR
+          # 3. Trigger deployment on Target Environment (ECS/K8s/Fly.io)
+          # 4. Run post-deployment smoke tests
+          # 5. Require manual approval gate for critical environments if needed
+          echo "Deployment successful."
