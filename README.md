@@ -6,33 +6,55 @@ A full-stack mini streaming platform designed around an **immutable catalogue pu
 
 The system features a **FastAPI + PostgreSQL** backend, an admin/editor **React CMS**, and a cinematic **React Viewer** that reads solely from a pre-published, cryptographically verified catalogue file—completely decoupled from live database traffic.
 
+
+---
+
+## 📸 UI Previews
+
+<div align="center">
+
+### 🎬 Viewer App — Streaming Frontend
+*Vibrant, rounded Netflix-style viewer featuring free Episode 1 preview, dynamic categories, search, and episode auth gating.*
+
+![Peblo Mini TV Viewer](docs/screenshots/viewer-home.png)
+
+<br/>
+
+### 🎛️ CMS Admin Portal — Content Management & Publishing
+*Complete show library management, multi-format artwork validation (Poster/Banner/Thumbnail), and atomic catalogue publishing pipeline.*
+
+![Peblo Mini TV CMS](docs/screenshots/cms-show-library.png)
+
+</div>
+
 ---
 
 ## 📑 Table of Contents
-1. [Architecture & Core Concept](#-architecture--core-concept)
-2. [Tech Stack](#-tech-stack)
-3. [Quick Start](#-quick-start)
+1. [UI Previews](#-ui-previews)
+2. [Architecture & Core Concept](#-architecture--core-concept)
+3. [Tech Stack](#-tech-stack)
+4. [Quick Start](#-quick-start)
    - [Option A: Docker Compose (Recommended)](#option-a-docker-compose-everything)
    - [Option B: Native Local Development](#option-b-native-local-development)
-4. [Roles & Permissions](#-roles--permissions)
-5. [Pre-Publish Validation & Publishing Pipeline](#-pre-publish-validation--publishing-pipeline)
-6. [5-Minute Golden Path Walkthrough](#-5-minute-golden-path-walkthrough)
-7. [API Contract & Endpoints](#-api-contract--endpoints)
-8. [Automated Testing](#-automated-testing)
-9. [Project Layout](#-project-layout)
-10. [Design Decisions & Technical Trade-offs (Part E)](#-design-decisions--technical-trade-offs-part-e)
+5. [Roles & Permissions](#-roles--permissions)
+6. [Pre-Publish Validation & Publishing Pipeline](#-pre-publish-validation--publishing-pipeline)
+7. [5-Minute Golden Path Walkthrough](#-5-minute-golden-path-walkthrough)
+8. [API Contract & Endpoints](#-api-contract--endpoints)
+9. [Automated Testing](#-automated-testing)
+10. [Project Layout](#-project-layout)
+11. [Design Decisions & Technical Trade-offs (Part E)](#-design-decisions--technical-trade-offs-part-e)
     - [1. Atomic Publishing & Crash Recovery](#1-atomic-publishing--what-happens-if-the-process-dies-mid-publish)
     - [2. Storage Abstraction: Moving to Cloudflare R2](#2-storage-abstraction--moving-to-cloudflare-r2)
     - [3. Search Implementation, Scale Limits & Next Steps](#3-search-implementation-scale-limits--next-steps)
     - [4. Pre-Published Catalogue vs Live Database](#4-why-serve-a-pre-published-catalogue-file-instead-of-querying-the-db)
     - [5. Omissions & Scope Trade-offs](#5-what-i-left-out-and-why)
     - [6. AI Tools & Engineering Decisions](#6-ai-tools-used--output-decisions)
-11. [Production Operations](#-production-operations)
+12. [Production Operations](#-production-operations)
     - [Secrets Management Strategy](#secrets-management-strategy)
     - [Health Monitoring & Alerting Strategy](#health-monitoring--alerting-strategy)
     - [CI/CD Automation Pipeline](#cicd-automation-pipeline)
-12. [Time Tracking Breakdown](#-time-tracking-breakdown)
-13. [Support & Sponsorship](#-support--sponsorship)
+13. [Time Tracking Breakdown](#-time-tracking-breakdown)
+14. [Support & Sponsorship](#-support--sponsorship)
 
 ---
 
